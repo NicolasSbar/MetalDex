@@ -45,7 +45,8 @@ Durante el desarrollo de MetalDex, profundicé en el uso de librerías modernas 
 | **Manipulación Imágenes** | Pillow (PIL) |
 | **Empaquetado** | PyInstaller, Inno Setup |
 
-🤖 Uso de IA Generativa
+## 🤖 Uso de IA Generativa
+
 En este proyecto, la IA no fue solo un asistente de consulta, sino una herramienta de ingeniería. La utilicé activamente para: * Migración de Datos: Traducir la estructura inicial de almacenamiento en CSV hacia un modelo relacional en SQLite.
 
 Resolución de Bugs de Despliegue: Diagnosticar y corregir falsos positivos en antivirus durante el empaquetado con Inno Setup.
