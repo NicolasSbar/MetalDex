@@ -55,6 +55,6 @@ Complejidad de CustomTkinter: Aunque es una librería potente, la personalizaci�
 
 Visualización en mapa (HTML): La creación del mapa interactivo requirió el uso de HTML y scripts que no forman parte de mi formación base. Delegué en la IA la generación de la estructura del mapa satelital y la lógica para que los marcadores mostraran información dinámica al pasar el cursor.
 
-##💡 Reflexión del Autor
+## 💡 Reflexión del Autor
 
 Este software es el resultado de mi capacidad para gestionar un proyecto de inicio a fin, utilizando la inteligencia artificial no solo para escribir código, sino para aprender e implementar tecnologías complejas (SQL, HTML, CustomTkinter) de forma acelerada y efectiva.
