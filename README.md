@@ -45,10 +45,16 @@ Durante el desarrollo de MetalDex, profundicé en el uso de librerías modernas 
 | **Manipulación Imágenes** | Pillow (PIL) |
 | **Empaquetado** | PyInstaller, Inno Setup |
 
-## 🤖 Uso de IA Generativa
+## 🤖 Desafíos Técnicos y Colaboración con IA
 
-En este proyecto, la IA no fue solo un asistente de consulta, sino una herramienta de ingeniería. La utilicé activamente para: * Migración de Datos: Traducir la estructura inicial de almacenamiento en CSV hacia un modelo relacional en SQLite.
+Este proyecto representó un reto de integración de diversas tecnologías. Debido a mi enfoque principal en la lógica de Python, utilicé IA Generativa de manera intensiva para cubrir áreas técnicas específicas:
 
-Resolución de Bugs de Despliegue: Diagnosticar y corregir falsos positivos en antivirus durante el empaquetado con Inno Setup.
+Dominio de SQL: Partiendo de un conocimiento nulo en bases de datos relacionales, utilicé la IA para diseñar el esquema de la base de datos, gestionar la migración desde CSV y asegurar que la carga de múltiples imágenes por objeto fuera estable.
 
-Documentación Técnica: Optimizar la claridad de los comentarios en el código y la estructura de este repositorio.
+Complejidad de CustomTkinter: Aunque es una librería potente, la personalización de widgets y la gestión de capas en la interfaz resultó ser un proceso complejo. La IA fue clave para estructurar una UI limpia, funcional y libre de errores de renderizado.
+
+Visualización en mapa (HTML): La creación del mapa interactivo requirió el uso de HTML y scripts que no forman parte de mi formación base. Delegué en la IA la generación de la estructura del mapa satelital y la lógica para que los marcadores mostraran información dinámica al pasar el cursor.
+
+##💡 Reflexión del Autor
+
+Este software es el resultado de mi capacidad para gestionar un proyecto de inicio a fin, utilizando la inteligencia artificial no solo para escribir código, sino para aprender e implementar tecnologías complejas (SQL, HTML, CustomTkinter) de forma acelerada y efectiva.
