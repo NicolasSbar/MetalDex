@@ -38,7 +38,7 @@ class App(ctk.CTk):
         except Exception:
             pass
 
-        self.title("Detectorium - Mi Museo Personal")
+        self.title("MetalDex - Registro de hallazgos")
         self.geometry("1100x600")
         
         try:
