@@ -1,0 +1,14 @@
+build/
+dist/
+*.spec
+*.exe
+hallazgos.db
+*.db
+__pycache__/
+*.pyc
+env/
+venv/
+.idea/
+.vscode/
+Output/
+Instalador_*.exe

@@ -1,5 +1,3 @@
-# Este es el nuevo archivo: map_picker_window.py (Con corrección de posición)
-
 import customtkinter as ctk
 import tkintermapview
 from PIL import Image, ImageTk 
@@ -14,6 +12,9 @@ def resource_path(relative_path):
     return os.path.join(application_path, relative_path)
 
 class MapPickerWindow(ctk.CTkToplevel):
+    """
+    Ventana Toplevel con mapa interactivo para selección de coordenadas.
+    """
     def __init__(self, master, on_coords_selected_callback):
         super().__init__(master)
         
@@ -34,41 +35,24 @@ class MapPickerWindow(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=0)
 
-        # --- CARGA Y AJUSTE DEL ÍCONO ---
         self.marker_icon = None
-        # Cambiamos el nombre a OIP.ico como pediste
         icon_path = resource_path("OIP.ico") 
         
         if os.path.exists(icon_path):
             try:
-                # 1. Abrimos la imagen original
                 original_img = Image.open(icon_path)
-                
-                # 2. Definimos el tamaño deseado (ej: 30x30 para que se vea bien)
                 icon_size = (30, 30) 
                 original_img.thumbnail(icon_size, Image.Resampling.LANCZOS)
                 
-                # 3. EL TRUCO DEL PADDING (Corrección de "la puntita")
-                # Creamos una imagen vacía (transparente) del DOBLE de alto
-                # Ancho = 30, Alto = 60
                 new_height = icon_size[1] * 2
                 offset_img = Image.new("RGBA", (icon_size[0], new_height), (0, 0, 0, 0))
-                
-                # Pegamos el ícono en la mitad de ARRIBA
-                # Así, el centro de la imagen nueva (que es donde el mapa pone el punto)
-                # coincide exactamente con la base del ícono original.
                 offset_img.paste(original_img, (0, 0))
                 
-                # 4. Convertimos a formato compatible con tkintermapview
                 self.marker_icon = ImageTk.PhotoImage(offset_img)
-                
             except Exception as e:
-                print(f"Error al cargar el ícono {icon_path}: {e}")
+                print(f"Error al cargar el icono del marcador: {e}")
                 self.marker_icon = None 
-        else:
-            print(f"Advertencia: no se encontró {icon_path}. Se usará el marcador por defecto.")
 
-        # --- Crear el widget del mapa ---
         self.map_widget = tkintermapview.TkinterMapView(
             self,
             width=800,
@@ -83,7 +67,6 @@ class MapPickerWindow(ctk.CTkToplevel):
         self.map_widget.set_position(-31.39, -58.02)
         self.map_widget.set_zoom(12)
         
-        # --- Frame de controles ---
         controls_frame = ctk.CTkFrame(self)
         controls_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
         controls_frame.grid_columnconfigure(0, weight=1)
@@ -105,12 +88,9 @@ class MapPickerWindow(ctk.CTkToplevel):
         self.btn_confirmar.grid(row=0, column=1, sticky="e", padx=10)
 
     def _on_left_click(self, coords_tuple):
-        print(f"Clic en el mapa: {coords_tuple}")
         lat, lon = coords_tuple
-        
         self.selected_coords = (lat, lon)
         
-        # Borramos y creamos de nuevo (es lo más seguro para iconos custom)
         if self.marker is not None:
             self.marker.delete()
 
@@ -126,5 +106,3 @@ class MapPickerWindow(ctk.CTkToplevel):
         if self.selected_coords:
             self.on_coords_selected_callback(self.selected_coords)
             self.destroy()
-        else:
-            print("No se seleccionaron coordenadas.")

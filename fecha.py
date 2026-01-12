@@ -14,5 +14,3 @@ class Fecha:
     
     def fecha_actual(self) -> date:
         return date.today()
-
-    

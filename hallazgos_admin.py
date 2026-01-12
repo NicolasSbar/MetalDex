@@ -1,60 +1,53 @@
-# hallazgos_admin.py (Tu versión completa + Parche AppData)
-
 import sqlite3
 import csv
 import os
 import sys
-import datetime 
-import shutil # <-- ¡Agregado para copiar la DB!
+import datetime
+import shutil
 from objeto import Objeto
 from ubicacion import ubicacion
 from coords import Coords
 from fecha import Fecha
 
-# --- FUNCIÓN NUEVA NECESARIA ---
 def resource_path(relative_path):
-    """ Obtiene la ruta absoluta al recurso, funciona para dev y para PyInstaller """
+    """
+    Obtiene la ruta absoluta al recurso, compatible con entornos de desarrollo
+    y ejecutables empaquetados con PyInstaller.
+    """
     if getattr(sys, 'frozen', False):
         application_path = os.path.dirname(sys.executable)
     else:
         application_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(application_path, relative_path)
-# -------------------------------
 
 class HallazgosAdmin:
     """
-    Administra hallazgos e imágenes usando una base de datos SQLite.
+    Controlador principal para la gestión de hallazgos e imágenes.
+    Maneja la conexión a SQLite y el sistema de archivos en AppData.
     """
- 
+
     def __init__(self, archivo_csv_original: str):
-        # --- BLOQUE DE CAMBIOS PARA APPDATA ---
-        # 1. Buscamos la carpeta de datos del usuario (AppData)
-        app_data_dir = os.getenv('APPDATA') 
+        # Configuración de rutas en AppData para persistencia de datos
+        app_data_dir = os.getenv('APPDATA')
         self.user_data_folder = os.path.join(app_data_dir, "MetalDex")
         
-        # 2. Creamos la carpeta 'MetalDex' si no existe
         if not os.path.exists(self.user_data_folder):
             os.makedirs(self.user_data_folder)
             
-        # 3. Definimos que la DB vive ahí
         self.db_path = os.path.join(self.user_data_folder, "hallazgos.db")
         
-        # 4. Si la DB no existe en AppData (primera vez que instala),
-        # intentamos copiar la que viene con el instalador (si hay una)
+        # Lógica de inicialización de la base de datos
+        # Si no existe en AppData, intenta copiar una versión base si está disponible en el paquete
         db_original_en_instalador = resource_path("hallazgos.db")
         
         if not os.path.exists(self.db_path):
             if os.path.exists(db_original_en_instalador):
                 try:
                     shutil.copy(db_original_en_instalador, self.db_path)
-                    print(f"Base de datos inicial copiada a: {self.db_path}")
                 except Exception as e:
-                    print(f"No se pudo copiar la DB base: {e}")
+                    print(f"Error al copiar la base de datos base: {e}")
             else:
-                print("No se encontró DB base, se creará una nueva vacía.")
-        # ----------------------------------------
-        
-        print(f"DEBUG: Usando base de datos en: {self.db_path}") 
+                print("Iniciando con base de datos nueva.")
         
         self.csv_path = archivo_csv_original
         self.hallazgos = []
@@ -69,15 +62,11 @@ class HallazgosAdmin:
             self._migrar_csv_a_db()
             self.cargar_hallazgos()
         except sqlite3.OperationalError as e:
-             print(f"Error grave de SQLite al iniciar: {e}")
-             print("Es posible que la base de datos esté bloqueada o no se pueda escribir en la ubicación.")
+             print(f"Error crítico al iniciar SQLite: {e}")
              raise
 
     def _conectar_db(self):
-        # Ahora usa self.db_path (que apunta a AppData)
         return sqlite3.connect(self.db_path)
-
-    # --- DE ACÁ PARA ABAJO ES TODO TU CÓDIGO ORIGINAL SIN TOCAR ---
 
     def _crear_tabla_hallazgos(self, conn: sqlite3.Connection):
         try:
@@ -117,7 +106,7 @@ class HallazgosAdmin:
             print(f"Error creando tabla imagenes: {e}")
 
     def _migrar_csv_a_db(self):
-        # Verificamos si la DB ya existe y tiene datos
+        """Importa datos desde CSV si la base de datos está vacía."""
         db_existe_y_poblada = False
         if os.path.exists(self.db_path):
              try:
@@ -127,17 +116,15 @@ class HallazgosAdmin:
                      conteo = cursor.fetchone()[0]
                      if conteo > 0:
                          db_existe_y_poblada = True
-             except Exception as e:
-                 print(f"Error al verificar la DB existente: {e}")
+             except Exception:
+                 pass
         
         if db_existe_y_poblada:
             return
 
-        # Para migrar, buscamos el CSV en la carpeta de instalación (resource_path)
         path_csv_real = resource_path(self.csv_path)
 
         if not db_existe_y_poblada and os.path.exists(path_csv_real):
-            print(f"Base de datos vacía. Intentando migración desde {path_csv_real}...")
             try:
                 with self._conectar_db() as conn:
                      cursor = conn.cursor()
@@ -146,7 +133,6 @@ class HallazgosAdmin:
                      
                      with open(path_csv_real, 'r', newline='', encoding='utf-8') as f:
                         reader = csv.DictReader(f)
-                        count_migrados = 0
                         for fila in reader:
                             try:
                                 fecha_obj = datetime.date(
@@ -164,16 +150,11 @@ class HallazgosAdmin:
                                     float(fila['coord_x']), float(fila['coord_y']),
                                     fecha_iso
                                 ))
-                                count_migrados += 1
-                            except Exception as e:
-                                print(f"Error migrando fila CSV: {e}")
+                            except Exception:
+                                pass
                         conn.commit()
-                        print(f"Migración completada. Se importaron {count_migrados} hallazgos.")
             except Exception as e:
-                 print(f"Error durante la migración: {e}")
-        elif not os.path.exists(path_csv_real):
-             print("Archivo CSV no encontrado para migrar.")
-
+                 print(f"Error durante la migración CSV: {e}")
 
     def cargar_hallazgos(self, ordenar_por: str = None):
         self.hallazgos.clear()
@@ -240,9 +221,9 @@ class HallazgosAdmin:
                         self.hallazgos.append(obj)
                         
                     except Exception as e: 
-                        print(f"Advertencia al cargar objeto ID {fila['id']}: {e}")
+                        print(f"Error cargando objeto ID {fila['id']}: {e}")
         except Exception as e:
-            print(f"Error al cargar hallazgos desde la DB: {e}")
+            print(f"Error al cargar hallazgos: {e}")
 
     def agregar_hallazgo(self, nuevo_objeto: Objeto):
         if not isinstance(nuevo_objeto, Objeto):
@@ -268,10 +249,9 @@ class HallazgosAdmin:
                  nuevo_id = cursor.lastrowid
                  conn.commit()
                  self.cargar_hallazgos()
-                 print(f"Hallazgo '{nuevo_objeto.descripcion}' guardado en DB con ID: {nuevo_id}.")
                  return nuevo_id
         except Exception as e:
-             print(f"Error al guardar el nuevo hallazgo en la DB: {e}")
+             print(f"Error al guardar hallazgo: {e}")
              return None
 
     def eliminar_hallazgo(self, hallazgo_id: int) -> bool:
@@ -280,21 +260,18 @@ class HallazgosAdmin:
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM hallazgos WHERE id = ?", (hallazgo_id,))
                 conn.commit()
-                
                 if cursor.rowcount == 0:
                     return False
-                
                 self.cargar_hallazgos()
                 return True
         except Exception as e:
-            print(f"Error al eliminar hallazgo de la DB: {e}")
+            print(f"Error al eliminar hallazgo: {e}")
             return False
 
     def editar_hallazgo(self, hallazgo_id: int, objeto_actualizado: Objeto) -> bool:
         try:
             with self._conectar_db() as conn:
                 cursor = conn.cursor()
-                
                 fecha_iso = objeto_actualizado.fec_ad.fecha.isoformat() if objeto_actualizado.fec_ad else None
                 pueblo = objeto_actualizado.ubicacion.pueblo if objeto_actualizado.ubicacion else None
                 provincia = objeto_actualizado.ubicacion.provincia if objeto_actualizado.ubicacion else None
@@ -321,7 +298,7 @@ class HallazgosAdmin:
                 self.cargar_hallazgos()
                 return True
         except Exception as e:
-            print(f"Error al editar hallazgo en la DB: {e}")
+            print(f"Error al editar hallazgo: {e}")
             return False
 
     def agregar_imagen(self, id_hallazgo: int, ruta_imagen: str):
@@ -333,9 +310,8 @@ class HallazgosAdmin:
                     (id_hallazgo, ruta_imagen)
                 )
                 conn.commit()
-                print(f"Imagen '{ruta_imagen}' agregada al hallazgo ID {id_hallazgo}.")
         except Exception as e:
-            print(f"Error al agregar imagen a la DB: {e}")
+            print(f"Error al agregar imagen: {e}")
 
     def obtener_imagenes(self, id_hallazgo: int) -> list:
         try:
@@ -379,8 +355,5 @@ class HallazgosAdmin:
                 conn.commit()
                 self.cargar_hallazgos()
         except Exception as e:
-            print(f"Error al eliminar imagen de la DB: {e}")
+            print(f"Error al eliminar imagen: {e}")
         return ruta_a_borrar
-
-    def listar_hallazgos(self):
-        pass
